@@ -37,13 +37,15 @@ var AlarmForm = React.createClass({
                         const data  = {"time": $("#timepicker").val()};
                         const checked = $(":checked");
                         for (var i=0; i < checked.length; i++) {
-                            var v = checked[i].value;
-                            data[v]=  v;
+                                var v = checked[i].value;
+                                data[v]=  v;
                         }
                         $.get("/set", data, function(result) {
 
                                 console.log("set result"+ JSON.stringify(result));
-                        })                    
+                                const OK = result.status == "OK";
+                                alert("Set alarm "+ OK);
+                        });
                 });
         }
 });
@@ -70,11 +72,17 @@ var App  = React.createClass({
         test: function() {
                 console.log("testing");
                 $.get("/test", function() {
-                        alert("Testing lights");}
-                     );
-        }, 
+                        const OK = result.status == "OK";
+                        alert("Testing lights "+ OK);
+                });
+        }
+        , 
         reset: function() {
                 console.log("reset");
+                $.get("/reset", function() {
+                        const OK = result.status == "OK";
+                        alert("Un-set alarm "+ OK);
+                });
         }, 
         addMusic: function() {
                 console.log("adding music");
