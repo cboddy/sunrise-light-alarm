@@ -35,7 +35,11 @@ def static_content(path):
 def redirct_to_main():
     return send_from_directory('public/', "index.html")
 
-
+@app.route("/set")
+def set():
+    args = request.args
+    print("set request-args", args)
+    return jsonify({"status": "OK"}) 
 if __name__ == "__main__":
     main()
 

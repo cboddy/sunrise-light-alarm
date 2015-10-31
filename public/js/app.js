@@ -2,7 +2,7 @@
 var AlarmForm = React.createClass({
         toDayLabel: function(day) {
                 return (<label key={day} className="btn btn-default">
-                                <input type="checkbox" value={day}>
+                                <input type="checkbox" value={day} name={day}>
                                 {day}
                                 </input>
                                 </label>);
@@ -15,7 +15,7 @@ var AlarmForm = React.createClass({
                                 <form role="form-inline" action="/set" method="get"> 
                                 <div className="form-group">
                                 <div className="input-group bootstrap-timepicker timepicker">
-                                <input id="timepicker" type="text" className="text-center input-lg"></input>
+                                <input id="timepicker" name="time" type="text" className="text-center input-lg"></input>
                                 </div>
                                 </div>
 
