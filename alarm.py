@@ -6,7 +6,7 @@ class Alarm(threading.Thread):
         self.timeOfDay = timeOfDay
         self.daysOfWeek = daysOfWeek
         self.delay = delay
-        self.isFinished = False
+        self.__isFinished = False
         
     def run(self):
         while not isFinished:
@@ -22,4 +22,4 @@ class Alarm(threading.Thread):
         pass
 
     def close(self):
-        self.isFinished = True
+        self.__isFinished = True
