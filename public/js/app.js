@@ -12,7 +12,7 @@ var AlarmForm = React.createClass({
         },
         render : function() {
                 return (<div>
-                                <form role="form-inline"> 
+                                <form role="form-inline" action="/set" method="get"> 
                                 <div className="form-group">
                                 <div className="input-group bootstrap-timepicker timepicker">
                                 <input id="timepicker" type="text" className="text-center input-lg"></input>
