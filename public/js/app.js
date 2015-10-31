@@ -1,18 +1,16 @@
+const daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 var AlarmForm = React.createClass({
         toDayLabel: function(day) {
                 return (<label key={day} className="btn btn-default">
-                                <input type="checkbox" value={day} name={day}>
+                                <input type="checkbox" value={day} name={day} id={day}>
                                 {day}
                                 </input>
                                 </label>);
         },
-        componentDidMount: function() {
-                $("#timepicker").timepicker();
-        },
         render : function() {
                 return (<div>
-                                <form role="form-inline" action="/set" method="get"> 
+                                <form id="set-form" role="form-inline"> 
                                 <div className="form-group">
                                 <div className="input-group bootstrap-timepicker timepicker">
                                 <input id="timepicker" name="time" type="text" className="text-center input-lg"></input>
@@ -22,7 +20,7 @@ var AlarmForm = React.createClass({
                                 <div className="form-group">
                                 <div id="daysOfWeek" className="btn-group" data-toggle="buttons" id="dayOfWeek">
                                 {
-                                        ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(this.toDayLabel)
+                                        daysOfWeek.map(this.toDayLabel)
                                 }
                                 </div>
                                 </div>
@@ -31,6 +29,22 @@ var AlarmForm = React.createClass({
                                 </form>
 
                                 </div>);
+        },
+        componentDidMount: function() {
+                $("#timepicker").timepicker();
+                $("#set-form").submit(function(event) {
+                        event.preventDefault();
+                        const data  = {"time": $("#timepicker").val()};
+                        const checked = $(":checked");
+                        for (var i=0; i < checked.length; i++) {
+                            var v = checked[i].value;
+                            data[v]=  v;
+                        }
+                        $.get("/set", data, function(result) {
+
+                                console.log("set result"+ JSON.stringify(result));
+                        })                    
+                });
         }
 });
 
