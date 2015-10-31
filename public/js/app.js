@@ -26,7 +26,7 @@ var AlarmForm = React.createClass({
                                 <label htmlFor="daysOfWeek" className="col-sm-3 control-label">Days of week</label>
                                 <div id="daysOfWeek" className="col-sm-9 btn-group" data-toggle="buttons" id="dayOfWeek">
                                 {
-                                        ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"].map(this.toDayLabel)
+                                        ["M", "T", "W", "T", "F", "Sa", "Su"].map(this.toDayLabel)
                                 }
                                 </div>
                                 </div>
