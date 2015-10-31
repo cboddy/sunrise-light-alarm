@@ -45,7 +45,7 @@ var App  = React.createClass({
                                 <AlarmForm/>
                                 <div className="btn-group-vertical">
                                 <button ref="unset" className="btn btn-default">Un-set alarm</button>
-                                <button ref="test" className="btn btn-default">Test-lights</button>
+                                <button ref="test" onClick={this.test} className="btn btn-default">Test-lights</button>
                                 <button ref="addMusic" className="btn btn-default">Add music</button>
                                 </div>
                                 </center>
@@ -53,11 +53,19 @@ var App  = React.createClass({
                                 </div>)
         },
 
-        componentDidMount: function() {
-                React.findDOMNode(this.refs.test);
-        }
+        test: function() {
+                console.log("testing");
+                $.get("/test", function() {
+                        alert("Testing lights");}
+                     );
+        }, 
+        reset: function() {
+                console.log("reset");
+        }, 
+        addMusic: function() {
+                console.log("adding music");
+        } 
 
-        
 });
 
 React.render(
