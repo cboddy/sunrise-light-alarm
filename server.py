@@ -2,23 +2,27 @@ from flask import Flask, request, session, redirect, url_for, escape, Session, m
 from flask.ext.mail import Mail, Message
 from itsdangerous import URLSafeSerializer, BadSignature
 
-import os, sys
+import os, sys, os.path
 import functools
 import urllib, urllib2
 import time
-import dateutil.parser
+from dateutil import parser
 import traceback
 
 import config
 import alarm
 
+WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
 app = Flask(__name__)
- 
+
 def main():
     app.debug = config.debug 
     app.secret_key = config.secretKey 
     app.run(port=config.port, threaded=config.threaded)
-
+     
+    #app.alarm = if os.path.exists(config.alarmState): 
+        
+    
 def with_login(f):
     @functools.wraps(f)
     def wrapper(*args, **kwds):
@@ -40,6 +44,11 @@ def redirct_to_main():
 def set():
     args = request.args
     print("set request-args", args)
+    date_time = parser.parse(args["time"])
+    weekday = date_time.weekday()
+    weekdays =  [WEEKDAYS[x] for x in args if x in WEEKDAYS]
+    print("date_time", date_time, "weekdays", weekdays)
+
     return jsonify({"status": "OK"}) 
 if __name__ == "__main__":
     main()
