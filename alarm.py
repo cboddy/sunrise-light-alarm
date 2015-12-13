@@ -8,51 +8,16 @@ seconds_per_minute  = 60
 seconds_per_day  = seconds_per_minute*60*24
 minutes_per_day  = seconds_per_day / 60 
 
-class AlarmState: 
+class Alarm(threading.Thread):
     def __init__(self, timeOfDay, daysOfWeek, wakeUpMinutes=30, graceMinutes=10, delay=10):
+        super(Alarm, self).__init__()
+        
         self.timeOfDay = timeOfDay
         self.daysOfWeek = daysOfWeek
         self.delay = delay
         self.wakeUpMinutes = wakeUpMinutes
         self.graceMinutes = graceMinutes
-
-    @staticmethod 
-    def loads(s): 
-        d = json.loads(s)
-        return AlarmState(parser.parse(d["time"]),
-                d["weekdays"],
-                d["delay"],
-                d["grace"],
-                d["wakeUpMinutes"])
-
-    @staticmethod
-    def fromFile(filename):
-        with open(filename, "r") as f:
-            return AlarmState.loads(
-                    reduce(lambda a,b: a+b, f.readlines()))
-
-    def dump(self): 
-        d = {
-                "time": self.timeOfDay.isoformat(),
-                "weekdays": self.daysOfWeek,
-                "delay": self.delay,
-                "grace": self.graceMinutes,
-                "wakeUpMinutes": self.wakeUpMinutes} 
-        return json.dumps(d)
-
-    def toFile(self, filename):
-        with open(filename, "w") as f:
-            f.write(self.dump())
-
-class Alarm(threading.Thread):
-    def __init__(self, state):
-        super(Alarm, self).__init__()
-        
-        self.timeOfDay = state.timeOfDay
-        self.daysOfWeek = state.daysOfWeek
-        self.delay = state.delay
-        self.wakeUpMinutes = state.wakeUpMinutes
-        self.graceMinutes = state.graceMinutes
+        self.setDaemon(True)
         self.__isFinished = False
 
     """
@@ -90,9 +55,36 @@ class Alarm(threading.Thread):
         self.__isFinished = True
 
 
+    @staticmethod 
+    def loads(s): 
+        d = json.loads(s)
+        return Alarm(parser.parse(d["time"]),
+                d["weekdays"],
+                d["delay"],
+                d["grace"],
+                d["wakeUpMinutes"])
+
+    @staticmethod
+    def fromFile(filename):
+        with open(filename, "r") as f:
+            return Alarm.loads(
+                    reduce(lambda a,b: a+b, f.readlines()))
+
+    def dump(self): 
+        d = {
+                "time": self.timeOfDay.isoformat(),
+                "weekdays": self.daysOfWeek,
+                "delay": self.delay,
+                "grace": self.graceMinutes,
+                "wakeUpMinutes": self.wakeUpMinutes} 
+        return json.dumps(d)
+
+    def toFile(self, filename):
+        with open(filename, "w") as f:
+            f.write(self.dump())
 if __name__ == "__main__":
-    state = AlarmState(datetime.datetime.now(), [0,1,2,3])
+    state = Alarm(datetime.datetime.now(), [0,1,2,3])
     filename = "alarm.state.json"
     state.toFile(filename)
-    state2 = AlarmState.fromFile(filename)
+    state2 = Alarm.fromFile(filename)
     print("state2", state2.dump())
