@@ -26,7 +26,11 @@ def main():
     app.secret_key = config.secretKey 
     app.statePath = config.statePath
     if os.path.exists(app.statePath): 
-        app.alarm = Alarm.fromFile(app.statePath)
+        try :
+            app.alarm = Alarm.fromFile(app.statePath)
+        except Exception as e:
+            os.remove(app.statePath)
+            print("Cannot read app-state from "+ app.statePath, e)
         
     print("Starting with alarm", app.alarm)
     app.run(port=config.port, threaded=config.threaded)
@@ -56,14 +60,14 @@ def set():
     weekdays =  [WEEKDAYS[x] for x in args if x in WEEKDAYS]
     updatedAlarm = Alarm(date_time, weekdays)
 
+    #serialize updated state
+    print("Updating state-file ", app.statePath)
+    updatedAlarm.toFile(app.statePath)
+
     #finish current alarm
     if app.alarm is not None: 
         print("Finishing current alarm", app.alarm)
         app.alarm.close()
-
-    #serialize updated state
-    print("Updating state-file ", app.statePath)
-    updatedAlarm.toFile(app.statePath)
 
     #set and start updated alarm thread
     app.alarm = updatedAlarm 
