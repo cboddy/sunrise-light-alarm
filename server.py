@@ -8,21 +8,30 @@ import urllib, urllib2
 import time
 from dateutil import parser
 import traceback
-
 import config
-import alarm
+from alarm import *
+import logging
 
 WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
+
+#logging.basicConfig(format='%(asctime)s %(message)s', filename= "alarm.log", level=logging.DEBUG)
+
 app = Flask(__name__)
 
 def main():
+    app.alarm = None
+    if app.alarm is not None: app.alarm.start()
+
     app.debug = config.debug 
     app.secret_key = config.secretKey 
-    app.run(port=config.port, threaded=config.threaded)
-     
-    #app.alarm = if os.path.exists(config.alarmState): 
+    app.statePath = config.statePath
+    if os.path.exists(app.statePath): 
+        state = AlarmState.fromFile(app.statePath)
+        app.alarm = Alarm(state) 
         
-    
+    print("Starting with alarm", app.alarm)
+    app.run(port=config.port, threaded=config.threaded)
+
 def with_login(f):
     @functools.wraps(f)
     def wrapper(*args, **kwds):
@@ -45,11 +54,24 @@ def set():
     args = request.args
     print("set request-args", args)
     date_time = parser.parse(args["time"])
-    weekday = date_time.weekday()
     weekdays =  [WEEKDAYS[x] for x in args if x in WEEKDAYS]
-    print("date_time", date_time, "weekdays", weekdays)
+    updatedState = AlarmState(date_time, weekdays)
 
+    #finish current alarm
+    if app.alarm is not None: 
+        print("Finishing current alarm", app.alarm)
+        app.alarm.close()
+
+    #serialize updated state
+    print("Updating state-file ", app.statePath)
+    updatedState.toFile(app.statePath)
+
+    #set and start updated alarm thread
+    app.alarm = Alarm(updatedState)
+    print("Starting updated alarm", app.alarm)
+    app.alarm.start()
+    
     return jsonify({"status": "OK"}) 
+
 if __name__ == "__main__":
     main()
-

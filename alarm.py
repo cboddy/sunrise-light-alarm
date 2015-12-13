@@ -45,7 +45,9 @@ class AlarmState:
             f.write(self.dump())
 
 class Alarm(threading.Thread):
-    def __init(self, state):
+    def __init__(self, state):
+        super(Alarm, self).__init__()
+        
         self.timeOfDay = state.timeOfDay
         self.daysOfWeek = state.daysOfWeek
         self.delay = state.delay
@@ -70,8 +72,8 @@ class Alarm(threading.Thread):
         return  red,green,blue
         
     def run(self):
-        while not isFinished:
-            time.sleep(delay)
+        while not self.__isFinished:
+            time.sleep(self.delay)
             dt = datetime.datetime.now()
             if not dt.weekday() in self.daysOfWeek: continue
 

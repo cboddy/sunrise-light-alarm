@@ -4,8 +4,12 @@ debug = True
 
 secretKey = os.urandom(24) 
 
-sqliteFile = "app.db"
+statePath = "alarm.json"
 
 port = 8765
+
 threaded=True
+
 serverName = "localhost"
+
+
