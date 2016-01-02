@@ -14,11 +14,10 @@ from ledstrip_bootstrap import *
 WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
 
 app = Flask(__name__)
+led.all_off() 
 
 def main():
-    led.all_off() 
     app.alarm = None
-    if app.alarm is not None: app.alarm.start()
 
     app.debug = config.debug 
     app.secret_key = config.secretKey 
@@ -30,7 +29,9 @@ def main():
             os.remove(app.statePath)
             print("Cannot read app-state from "+ app.statePath, e)
         
-    print("Starting with alarm", app.alarm)
+    print("Starting with alarm", str(app.alarm))
+    if app.alarm is not None: 
+        app.alarm.start()
     app.run(host=config.host, port=config.port, threaded=config.threaded)
 
 def with_login(f):
@@ -55,23 +56,24 @@ def set():
     args = request.args
     print("set request-args", args)
     date_time = parser.parse(args["time"])
-    weekdays =  [WEEKDAYS[x] for x in args if x in WEEKDAYS]
-    updatedAlarm = Alarm(date_time, weekdays)
+    daysOfWeek =  [WEEKDAYS[x] for x in args if x in WEEKDAYS]
+
+
+    if app.alarm is None: 
+        app.alarm = Alarm(date_time, daysOfWeek)
+        app.alarm.start()
+    else: 
+        app.alarm.timeOfDay = date_time
+        app.alarm.daysOfWeek =daysOfWeek
+
+    on()
+    time.sleep(5)
+    off()
 
     #serialize updated state
-    print("Updating state-file ", app.statePath)
-    updatedAlarm.toFile(app.statePath)
+    print("Updating state-file ", app.statePath, "with alarm", str(app.alarm), "daysOfWeek", daysOfWeek)
+    app.alarm.toFile(app.statePath)
 
-    #finish current alarm
-    if app.alarm is not None: 
-        print("Finishing current alarm", app.alarm)
-        app.alarm.close()
-
-    #set and start updated alarm thread
-    app.alarm = updatedAlarm 
-    print("Starting updated alarm", app.alarm)
-    app.alarm.start()
-    
     return jsonify({"status": "OK"}) 
 
 @app.route("/test")
@@ -82,6 +84,7 @@ def test():
 	anim.step()
 	led.update()
     led.all_off() 
+    return jsonify({"status": "OK"}) 
 
 @app.route("/on")
 def on():
@@ -92,11 +95,13 @@ def on():
     print("turning on with brightness", level)
     led.fill(Color(255, 255, 255, level))
     led.update()
+    return jsonify({"status": "OK"}) 
 
 @app.route("/off")
 def off():
     print("turning off...")
     led.all_off()
+    return jsonify({"status": "OK"}) 
 
 if __name__ == "__main__":
     main()

@@ -10,7 +10,7 @@ chdir /home/pi/sunrise
 case "$1" in
   start)
     echo "Starting sunrise server"
-    python sunrise.py >> sunrise.log
+    python -u sunrise.py >> sunrise.log
     ;;
   stop)
     echo "Stopping sunrise server"

@@ -15,7 +15,7 @@ class Alarm(threading.Thread):
         self.timeOfDay = timeOfDay
         self.daysOfWeek = daysOfWeek
         self.delay = delay
-        self.wakeUpMinutes = wakeUpMinutes
+        self.wakeUpMinutes = float(wakeUpMinutes)
         self.graceMinutes = graceMinutes
         self.setDaemon(True)
         self.led = led
@@ -25,33 +25,37 @@ class Alarm(threading.Thread):
         deltaMinutes: number of minutes before alarm time
         generate r,g,b values 
     """
+    def __str__(self):
+        return str(self.dump())
+    
     def  getLight(self, deltaMinutes):
-        if minutes_per_day - deltaMinutes < self.graceMinutes:
-            return 255.0, 255.0, 255.0 , 1.0
-        if deltaMinutes > self.wakeUpMinutes:
-            return None 
-        ramp, full = self.wakeUpMinutes/3, self.wakeUpMinutes*4/5
-        inverse_redness = max(0, deltaMinutes - ramp)
-        red  =  1.0 - inverse_redness
-        inverse_other = max(0, deltaMinutes -full)
-        green =  blue =  1.0 - inverse_other
-        return  red,green,blue, 1.0
+        #print ("deltaMinutes", deltaMinutes, "wake-up mins ", self.wakeUpMinutes)
+        if minutes_per_day - deltaMinutes < self.graceMinutes: return Color(255.0, 255.0, 255.0 , 1.0)
+        if deltaMinutes > self.wakeUpMinutes: return None 
+        level = 1.0 -   deltaMinutes / self.wakeUpMinutes
+        red, green, blue = 255.0, 0.0, 255.0 * level 
+        print(red,green, blue, self.wakeUpMinutes, deltaMinutes, level)
+        return  Color(red,green,blue, level)
         
     def run(self):
         while not self.__isFinished:
             time.sleep(self.delay)
-            dt = datetime.datetime.now()
-            if not dt.weekday() in self.daysOfWeek: continue
+            now = datetime.datetime.now()
 
-            delta =  self.timeOfDay - dt
+            #print("alarm loop @", now)
+            if not now.weekday() in self.daysOfWeek: 
+                #print("skipping since weekday", now.weekday(), "day-of-week not in ", self.daysOfWeek)
+                continue
+
+            delta =  self.timeOfDay - now 
             deltaMinutes = (delta.seconds  % seconds_per_day) / seconds_per_minute
-            light = getLight(delta) 
-            print("light", light)
+            light = self.getLight(deltaMinutes) 
+            print(now, "setting light", str(light))
             if light is not None: self.setLight(light)
 
-    def setLight(self, light):
-        r, g, b, level = light
-        self.led.fill(r, g, b, level)
+    def setLight(self, color):
+        self.led.fill(color)
+        self.led.update()
 
     def close(self):
         self.__isFinished = True
@@ -74,9 +78,9 @@ class Alarm(threading.Thread):
         d = json.loads(s)
         return Alarm(parser.parse(d["time"]),
                 d["weekdays"],
-                d["delay"],
+                d["wakeUpMinutes"],
                 d["grace"],
-                d["wakeUpMinutes"])
+                d["delay"])
 
     @staticmethod
     def fromFile(filename):

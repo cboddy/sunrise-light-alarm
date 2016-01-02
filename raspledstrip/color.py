@@ -14,7 +14,6 @@ class Color:
         self.r = r * bright
         self.g = g * bright
         self.b = b * bright
-
     def get_color_hsv(self):
         h, s, v = colorsys.rgb_to_hsv(self.r / 255.0,
                                       self.g / 255.0,
