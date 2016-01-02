@@ -82,5 +82,21 @@ def test():
 	anim.step()
 	led.update()
     led.all_off() 
+
+@app.route("/on")
+def on():
+    level = 1.0
+
+    if "level" in request.args: level = float(request.args["level"])
+
+    print("turning on with brightness", level)
+    led.fill(Color(255, 255, 255, level))
+    led.update()
+
+@app.route("/off")
+def off():
+    print("turning off...")
+    led.all_off()
+
 if __name__ == "__main__":
     main()
