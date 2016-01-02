@@ -9,12 +9,14 @@ import traceback
 import config
 from alarm import *
 import logging
+from ledstrip_bootstrap import * 
 
 WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
 
 app = Flask(__name__)
 
 def main():
+    led.all_off() 
     app.alarm = None
     if app.alarm is not None: app.alarm.start()
 
@@ -72,5 +74,13 @@ def set():
     
     return jsonify({"status": "OK"}) 
 
+@app.route("/test")
+def test():
+    print("testing...")
+    anim = Wave(led, Color(255, 0, 0), 4)
+    for i in range(led.lastIndex):
+	anim.step()
+	led.update()
+    led.all_off() 
 if __name__ == "__main__":
     main()
