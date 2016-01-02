@@ -1,8 +1,8 @@
 import threading
+import time, json, datetime
+
 from dateutil import parser
-import time
-import json
-import datetime
+from ledstrip_bootstrap import *
 
 seconds_per_minute  = 60
 seconds_per_day  = seconds_per_minute*60*24
@@ -19,6 +19,7 @@ class Alarm(threading.Thread):
         self.graceMinutes = graceMinutes
         self.setDaemon(True)
         self.__isFinished = False
+        self.led = led
 
     """
         deltaMinutes: number of minutes before alarm time
@@ -54,6 +55,18 @@ class Alarm(threading.Thread):
     def close(self):
         self.__isFinished = True
 
+    def dump(self): 
+        d = {
+                "time": self.timeOfDay.isoformat(),
+                "weekdays": self.daysOfWeek,
+                "delay": self.delay,
+                "grace": self.graceMinutes,
+                "wakeUpMinutes": self.wakeUpMinutes} 
+        return json.dumps(d)
+
+    def toFile(self, filename):
+        with open(filename, "w") as f:
+            f.write(self.dump())
 
     @staticmethod 
     def loads(s): 
@@ -70,18 +83,6 @@ class Alarm(threading.Thread):
             return Alarm.loads(
                     reduce(lambda a,b: a+b, f.readlines()))
 
-    def dump(self): 
-        d = {
-                "time": self.timeOfDay.isoformat(),
-                "weekdays": self.daysOfWeek,
-                "delay": self.delay,
-                "grace": self.graceMinutes,
-                "wakeUpMinutes": self.wakeUpMinutes} 
-        return json.dumps(d)
-
-    def toFile(self, filename):
-        with open(filename, "w") as f:
-            f.write(self.dump())
 if __name__ == "__main__":
     state = Alarm(datetime.datetime.now(), [0,1,2,3])
     filename = "alarm.state.json"

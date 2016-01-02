@@ -14,8 +14,6 @@ import logging
 
 WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
 
-#logging.basicConfig(format='%(asctime)s %(message)s', filename= "alarm.log", level=logging.DEBUG)
-
 app = Flask(__name__)
 
 def main():
