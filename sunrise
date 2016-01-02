@@ -1,0 +1,25 @@
+#! /bin/sh
+# /etc/init.d/blah
+#
+
+# Some things that run always
+
+chdir /home/pi/sunrise 
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting sunrise server"
+    python sunrise.py
+    ;;
+  stop)
+    echo "Stopping sunrise server"
+    ps aux  |grep sunrise.py | awk '{print $2}' |xargs kill -9
+    ;;
+  *)
+    echo "Usage: /etc/init.d/sunrise {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0

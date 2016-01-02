@@ -18,8 +18,8 @@ class Alarm(threading.Thread):
         self.wakeUpMinutes = wakeUpMinutes
         self.graceMinutes = graceMinutes
         self.setDaemon(True)
-        self.__isFinished = False
         self.led = led
+        self.__isFinished = False
 
     """
         deltaMinutes: number of minutes before alarm time
@@ -27,7 +27,7 @@ class Alarm(threading.Thread):
     """
     def  getLight(self, deltaMinutes):
         if minutes_per_day - deltaMinutes < self.graceMinutes:
-            return 1.0,1.0,1.0
+            return 255.0, 255.0, 255.0 , 1.0
         if deltaMinutes > self.wakeUpMinutes:
             return None 
         ramp, full = self.wakeUpMinutes/3, self.wakeUpMinutes*4/5
@@ -35,7 +35,7 @@ class Alarm(threading.Thread):
         red  =  1.0 - inverse_redness
         inverse_other = max(0, deltaMinutes -full)
         green =  blue =  1.0 - inverse_other
-        return  red,green,blue
+        return  red,green,blue, 1.0
         
     def run(self):
         while not self.__isFinished:
@@ -50,7 +50,8 @@ class Alarm(threading.Thread):
             if light is not None: self.setLight(light)
 
     def setLight(self, light):
-        pass
+        r, g, b, level = light
+        self.led.fill(r, g, b, level)
 
     def close(self):
         self.__isFinished = True

@@ -1,6 +1,4 @@
 from flask import Flask, request, session, redirect, url_for, escape, Session, make_response, jsonify, send_from_directory
-from flask.ext.mail import Mail, Message
-from itsdangerous import URLSafeSerializer, BadSignature
 
 import os, sys, os.path
 import functools
@@ -31,7 +29,7 @@ def main():
             print("Cannot read app-state from "+ app.statePath, e)
         
     print("Starting with alarm", app.alarm)
-    app.run(port=config.port, threaded=config.threaded)
+    app.run(host=config.host, port=config.port, threaded=config.threaded)
 
 def with_login(f):
     @functools.wraps(f)
