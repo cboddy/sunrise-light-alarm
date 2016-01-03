@@ -25,31 +25,12 @@ var AlarmForm = React.createClass({
                                 </div>
                                 </div>
 
-                                <button  type="submit" className="btn btn-default">Set alarm</button>
                                 </form>
 
                                 </div>);
         },
-        set: function(data) {
-                console.log("setting "+ JSON.stringify(data));
-                $.get("/set", data, function(result) {
-                        console.log("set result"+ JSON.stringify(result));
-                        const OK = result.status == "OK";
-                        alert("Set alarm "+ OK);
-                });
-        },
         componentDidMount: function() {
                 $("#timepicker").timepicker();
-                $("#set-form").submit(function(event) {
-                        event.preventDefault();
-                        const data  = {"time": $("#timepicker").val()};
-                        const checked = $(":checked");
-                        for (var i=0; i < checked.length; i++) {
-                                var v = checked[i].value;
-                                data[v]=  v;
-                        }
-                        this.set(data);
-                }.bind(this));
         }
 });
 
@@ -62,12 +43,26 @@ var App  = React.createClass({
                                 <center>
                                 <h2>Rise and Shine</h2>
                                 <AlarmForm/>
+
+                                <div className="form-group">
                                 <div className="btn-group-vertical">
                                 <button ref="stat" onClick={this.stat} className="btn btn-default">Status</button>
+                                </div>
+                                </div>
+
+                                <div className="form-group">
+                                <div className="btn-group-vertical">
+                                <button ref="set"  onClick={this.set} className="btn btn-default">Set alarm</button>
                                 <button ref="unset" onClick={this.reset} className="btn btn-default">Cancel alarm</button>
-                                <button ref="test" onClick={this.test} className="btn btn-default">Test-lights</button>
+                                </div>
+                                </div>
+
+                                <div className="form-group">
+                                <div className="btn-group-vertical">
                                 <button ref="on" onClick={this.on} className="btn btn-default">Turn on lights</button>
                                 <button ref="off" onClick={this.off} className="btn btn-default">Turn off lights</button>
+                                <button ref="test" onClick={this.test} className="btn btn-default">Wave</button>
+                                </div>
                                 </div>
                                 </center>
 
@@ -79,6 +74,22 @@ var App  = React.createClass({
                 $.get("/test", function() {
                         const OK = result.status == "OK";
                         alert("Testing lights "+ OK);
+                });
+        },
+
+        set: function() {
+                const data  = {"time": $("#timepicker").val()};
+                const checked = $(":checked");
+                for (var i=0; i < checked.length; i++) {
+                        var v = checked[i].value;
+                        data[v]=  v;
+                }
+                console.log("setting "+ JSON.stringify(data));
+
+                $.get("/set", data, function(result) {
+                        console.log("set result"+ JSON.stringify(result));
+                        const OK = result.status == "OK";
+                        alert("Set alarm "+ OK);
                 });
         },
 

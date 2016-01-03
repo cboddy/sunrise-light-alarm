@@ -104,10 +104,10 @@ def set():
         app.alarm.daysOfWeek =daysOfWeek
 
     flash()
-
     #serialize updated state
     print("Updating state-file ", app.statePath, "with alarm", str(app.alarm), "daysOfWeek", daysOfWeek)
     app.alarm.toFile(app.statePath)
+
     return jsonify({"status": "OK"}) 
 
 @app.route("/reset")
