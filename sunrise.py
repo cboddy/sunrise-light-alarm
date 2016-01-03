@@ -9,13 +9,13 @@ import traceback
 import config
 from alarm import *
 import logging
-#from ledstrip_bootstrap import * 
+from ledstrip_bootstrap import * 
 
 WEEKDAYS = {"Mo": 0, "Tu": 1, "We": 2, "Th": 3, "Fr": 4, "Sa": 5, "Su": 6}
 WEEKDAYS_REVERSE = {v: k for (k,v) in WEEKDAYS.iteritems()}
 
 app = Flask(__name__)
-#led.all_off() 
+led.all_off() 
 
 def main():
     app.alarm = None
@@ -120,7 +120,7 @@ def reset():
             os.remove(app.statePath)
         except Exception as e:
             print("Could not remove", app.statePath, "due to", sys.exc_info())
-    #flash()
+    flash()
     return jsonify({"status": "OK"}) 
         
 @app.route("/test")
