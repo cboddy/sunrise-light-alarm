@@ -80,6 +80,10 @@ var App  = React.createClass({
         set: function() {
                 const data  = {"time": $("#timepicker").val()};
                 const checked = $(":checked");
+                if (checked.length == 0) {
+                    alert("Select at least one day of the week");
+                    return;
+                } 
                 for (var i=0; i < checked.length; i++) {
                         var v = checked[i].value;
                         data[v]=  v;
