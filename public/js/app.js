@@ -30,6 +30,14 @@ var AlarmForm = React.createClass({
 
                                 </div>);
         },
+        set: function(data) {
+                console.log("setting "+ JSON.stringify(data));
+                $.get("/set", data, function(result) {
+                        console.log("set result"+ JSON.stringify(result));
+                        const OK = result.status == "OK";
+                        alert("Set alarm "+ OK);
+                });
+        },
         componentDidMount: function() {
                 $("#timepicker").timepicker();
                 $("#set-form").submit(function(event) {
@@ -40,13 +48,8 @@ var AlarmForm = React.createClass({
                                 var v = checked[i].value;
                                 data[v]=  v;
                         }
-                        $.get("/set", data, function(result) {
-
-                                console.log("set result"+ JSON.stringify(result));
-                                const OK = result.status == "OK";
-                                alert("Set alarm "+ OK);
-                        });
-                });
+                        this.set(data);
+                }.bind(this));
         }
 });
 
@@ -60,11 +63,11 @@ var App  = React.createClass({
                                 <h2>Rise and Shine</h2>
                                 <AlarmForm/>
                                 <div className="btn-group-vertical">
-                                <button ref="unset" className="btn btn-default">Un-set alarm</button>
+                                <button ref="stat" onClick={this.stat} className="btn btn-default">Status</button>
+                                <button ref="unset" onClick={this.reset} className="btn btn-default">Cancel alarm</button>
                                 <button ref="test" onClick={this.test} className="btn btn-default">Test-lights</button>
                                 <button ref="on" onClick={this.on} className="btn btn-default">Turn on lights</button>
                                 <button ref="off" onClick={this.off} className="btn btn-default">Turn off lights</button>
-                                <button ref="addMusic" className="btn btn-default">Add music</button>
                                 </div>
                                 </center>
 
@@ -78,7 +81,7 @@ var App  = React.createClass({
                         alert("Testing lights "+ OK);
                 });
         },
-        
+
         on: function() {
                 console.log("turning on");
                 $.get("/on", function() {
@@ -92,17 +95,27 @@ var App  = React.createClass({
                         alert("turned off");
                 });
         }, 
+
         reset: function() {
                 console.log("reset");
                 $.get("/reset", function() {
                         const OK = result.status == "OK";
-                        alert("Un-set alarm "+ OK);
+                        alert("Alarm cancelled "+ OK);
+                });
+        }, 
+        stat: function() {
+                console.log("stat");
+                $.get("/stat", function(result) {
+                        console.log(JSON.stringify(result));
+                        const stat = result.stat;
+                        const msg =  result.status == "None" ? "Alarm not set" : "Alarm time : " + stat.time +"\nAlarm days : "+ stat.weekdays;
+                        alert(msg);
                 });
         }, 
         addMusic: function() {
                 console.log("adding music");
+                //TODO
         } 
-
 });
 
 React.render(

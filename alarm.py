@@ -2,7 +2,7 @@ import threading
 import time, json, datetime
 
 from dateutil import parser
-from ledstrip_bootstrap import *
+#from ledstrip_bootstrap import *
 
 seconds_per_minute  = 60
 seconds_per_day  = seconds_per_minute*60*24
@@ -18,7 +18,7 @@ class Alarm(threading.Thread):
         self.wakeUpMinutes = float(wakeUpMinutes)
         self.graceMinutes = graceMinutes
         self.setDaemon(True)
-        self.led = led
+        #self.led = led
         self.__isFinished = False
 
     """
