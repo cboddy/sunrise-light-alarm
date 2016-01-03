@@ -61,7 +61,7 @@ var App  = React.createClass({
                                 <div className="btn-group-vertical">
                                 <button ref="on" onClick={this.on} className="btn btn-default">Turn on lights</button>
                                 <button ref="off" onClick={this.off} className="btn btn-default">Turn off lights</button>
-                                <button ref="test" onClick={this.test} className="btn btn-default">Wave</button>
+                                <button ref="test" onClick={this.test} className="btn btn-default">Animation</button>
                                 </div>
                                 </div>
                                 </center>
@@ -71,7 +71,7 @@ var App  = React.createClass({
 
         test: function() {
                 console.log("testing");
-                $.get("/test", function() {
+                $.get("/test", function(result) {
                         const OK = result.status == "OK";
                         alert("Testing lights "+ OK);
                 });
@@ -95,21 +95,21 @@ var App  = React.createClass({
 
         on: function() {
                 console.log("turning on");
-                $.get("/on", function() {
+                $.get("/on", function(result) {
                         alert("turned on");
                 });
         }, 
 
         off: function() {
                 console.log("turning off");
-                $.get("/off", function() {
+                $.get("/off", function(result) {
                         alert("turned off");
                 });
         }, 
 
         reset: function() {
                 console.log("reset");
-                $.get("/reset", function() {
+                $.get("/reset", function(result) {
                         const OK = result.status == "OK";
                         alert("Alarm cancelled "+ OK);
                 });
