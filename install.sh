@@ -2,8 +2,8 @@
 
 if [ -z "$1" ]
 then
-    echo "Usage: ./deploy.sh remote_user@remote_host"
-    echo "eg: ./deploy.sh pi@raspberrypi"
+    echo "Usage: ./install.sh remote_user@remote_host"
+    echo "eg: ./install.sh pi@raspberrypi"
     exit 
 fi
 
