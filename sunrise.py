@@ -69,13 +69,13 @@ def off():
     led.all_off()
     return jsonify({"status": "OK"}) 
 
-def flash():
+def flash(count=3, delay=0.5):
     print("flashing...")
-    for x in xrange(5):
+    for x in xrange(count):
         on()
-        time.sleep(0.5)
+        time.sleep(delay)
         off()
-        time.sleep(0.5)
+        time.sleep(delay)
 
 @app.route("/stat")
 def stat():

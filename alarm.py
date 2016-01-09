@@ -19,17 +19,17 @@ class Alarm(threading.Thread):
         self.graceMinutes = graceMinutes
         self.setDaemon(True)
         self.led = led
+        self.lock = threading.Lock()
         self.__isFinished = False
 
-    """
-        deltaMinutes: number of minutes before alarm time
-        generate r,g,b values 
-    """
     def __str__(self):
         return str(self.dump())
     
     def  getLight(self, deltaMinutes):
-        #print ("deltaMinutes", deltaMinutes, "wake-up mins ", self.wakeUpMinutes)
+        """
+        deltaMinutes: number of minutes before alarm time
+        generate r,g,b values 
+        """
         if minutes_per_day - deltaMinutes < self.graceMinutes: return Color(255.0, 255.0, 255.0 , 1.0)
         if deltaMinutes > self.wakeUpMinutes: return None 
         level = 1.0 -   deltaMinutes / self.wakeUpMinutes
@@ -38,27 +38,28 @@ class Alarm(threading.Thread):
         return  Color(red,green,blue, level)
         
     def run(self):
-        while not self.__isFinished:
+        while True:
             time.sleep(self.delay)
-            now = datetime.datetime.now()
+            with self.lock: 
+                if self.__isFinished: break
+            self.tick()
 
-            #print("alarm loop @", now)
-            if not now.weekday() in self.daysOfWeek: 
-                #print("skipping since weekday", now.weekday(), "day-of-week not in ", self.daysOfWeek)
-                continue
-
-            delta =  self.timeOfDay - now 
-            deltaMinutes = (delta.seconds  % seconds_per_day) / seconds_per_minute
-            light = self.getLight(deltaMinutes) 
-            print(now, "setting light", str(light))
-            if light is not None: self.setLight(light)
+    def tick(self):
+        now = datetime.datetime.now()
+        if not now.weekday() in self.daysOfWeek: return 
+        delta =  self.timeOfDay - now 
+        deltaMinutes = (delta.seconds  % seconds_per_day) / seconds_per_minute
+        light = self.getLight(deltaMinutes) 
+        #print(now, "setting light", str(light))
+        if light is not None: self.setLight(light)
 
     def setLight(self, color):
         self.led.fill(color)
         self.led.update()
 
     def close(self):
-        self.__isFinished = True
+        with self.lock:
+            self.__isFinished = True
 
     def dump(self): 
         d = {
