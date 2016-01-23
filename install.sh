@@ -21,6 +21,7 @@ echo "unpacking project on remote " $1
 
 #executed on remote (raspberry-pi)
 ssh $1 '
+sudo apt-get install python-pip
 sudo pip install python-dateutil flask
 
 mkdir -p sunrise 
