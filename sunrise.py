@@ -64,7 +64,7 @@ def stat():
     stat = {} 
     status = "None"
     if app.alarm.days_of_week: 
-        stat = repr(app.alarm)
+        stat = json.loads(repr(app.alarm))
         #prettify
         stat["time"] = parser.parse(stat["time"]).strftime("%H:%M")
         stat["weekdays"] =  [WEEKDAYS_REVERSE[x] for x in stat["weekdays"]]
@@ -80,13 +80,13 @@ def set():
     app.alarm.times_of_week = TimesOfWeek(date_time, days_of_week)
     flash()
     #serialize updated state
-    print("Updating state-file ", app.statePath, "with alarm", str(app.alarm), "daysOfWeek", days_of_week)
+    print("Updating state-file ", app.statePath, "with alarm", app.alarm, "daysOfWeek", days_of_week)
     app.alarm.to_file(app.statePath)
     return jsonify({"status": "OK"}) 
 
 @app.route("/reset")
 def reset():
-    app.alarm.times_of_week = TimesOfWeek()
+    app.alarm.times_of_week = EMPTY_TIMES_OF_WEEK
     if os.path.exists(app.statePath): 
         try: 
             os.remove(app.statePath)
@@ -105,7 +105,6 @@ def test():
     return jsonify({"status": "OK"})
 
 def main():
-    app.debug = config.debug 
     app.secret_key = config.secretKey 
     app.statePath = config.statePath
     app.alarm = Alarm()
@@ -115,7 +114,7 @@ def main():
         except Exception as e:
             os.remove(app.statePath)
             print("Cannot read app-state from "+ app.statePath, e)
-        
+
     print("Starting with alarm", str(app.alarm))
     app.alarm.start()
     app.run(host=config.host, port=config.port, threaded=config.threaded)

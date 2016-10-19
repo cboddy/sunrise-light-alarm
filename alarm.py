@@ -15,10 +15,11 @@ SECONDS_PER_DAY = SECONDS_PER_MINUTE*60*24
 MINUTES_PER_DAY = SECONDS_PER_DAY / 60
 
 TimesOfWeek = collections.namedtuple("WeekTimes", ["time_of_day", "days_of_week"])
+EMPTY_TIMES_OF_WEEK = TimesOfWeek(datetime.datetime.now(), [])
 
 class Alarm(threading.Thread):
     
-    def __init__(self, times_of_week=TimesOfWeek(datetime.datetime.now(), []), wake_up_minutes=30, grace_minutes=10, delay=10):
+    def __init__(self, times_of_week=EMPTY_TIMES_OF_WEEK, wake_up_minutes=30, grace_minutes=10, delay=10):
         super(Alarm, self).__init__()
 
         self._times_of_week = times_of_week
@@ -80,7 +81,7 @@ class Alarm(threading.Thread):
 
         level = 1.0 -   delta_minutes / self.wake_up_minutes
         red, green, blue = 255.0, 0.0, 255.0 * level 
-        print(red,green, blue, self.wake_up_minutes, delta_minutes, level)
+        #print(red,green, blue, self.wake_up_minutes, delta_minutes, level)
         return Color(red, green, blue, level)
         #return None
     
@@ -103,7 +104,7 @@ class Alarm(threading.Thread):
         delta = self.time_of_day - now 
         delta_minutes = (delta.seconds  % SECONDS_PER_DAY) / SECONDS_PER_MINUTE
         color = self.get_color(delta_minutes)
-        print(now, "setting color", color)
+        #print(now, "setting color", str(color), "for state", self)
         if color:
             led.fill(color)
             led.update()
