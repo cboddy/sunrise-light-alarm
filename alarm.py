@@ -1,97 +1,156 @@
-import threading
-import time, json, datetime
+"""An Alarm thread that periodically generates an r,g,b color value and
+sets the ledstrip to that color"""
 
+import threading
+import time
+import sys
+import json
+import datetime
+import collections
 from dateutil import parser
 from ledstrip_bootstrap import *
 
-seconds_per_minute  = 60
-seconds_per_day  = seconds_per_minute*60*24
-minutes_per_day  = seconds_per_day / 60 
+SECONDS_PER_MINUTE = 60
+SECONDS_PER_DAY = SECONDS_PER_MINUTE*60*24
+MINUTES_PER_DAY = SECONDS_PER_DAY / 60
+
+TimesOfWeek = collections.namedtuple("WeekTimes", ["time_of_day", "days_of_week"])
 
 class Alarm(threading.Thread):
-    def __init__(self, timeOfDay, daysOfWeek, wakeUpMinutes=30, graceMinutes=10, delay=10):
-        super(Alarm, self).__init__()
-        
-        self.timeOfDay = timeOfDay
-        self.daysOfWeek = daysOfWeek
-        self.delay = delay
-        self.wakeUpMinutes = float(wakeUpMinutes)
-        self.graceMinutes = graceMinutes
-        self.setDaemon(True)
-        self.led = led
-        self.lock = threading.Lock()
-        self.__isFinished = False
-
-    def __str__(self):
-        return str(self.dump())
     
-    def  getLight(self, deltaMinutes):
+    def __init__(self, times_of_week=TimesOfWeek(datetime.datetime.now(), []), wake_up_minutes=30, grace_minutes=10, delay=10):
+        super(Alarm, self).__init__()
+
+        self._times_of_week = times_of_week
+        self.delay = delay
+        self.wake_up_minutes = float(wake_up_minutes)
+        self.grace_minutes = grace_minutes
+        self.setDaemon(True)
+        self._is_finished = False
+        self._lock = threading.Lock()
+
+    @property
+    def time_of_day(self):
+        """the time of day at which the alarm is set"""
+        return self.times_of_week.time_of_day
+
+    @property
+    def days_of_week(self):
+        """the days of the week the alarm is set"""
+        return self.times_of_week.days_of_week
+
+    @property
+    def is_finished(self):
+        """guarded by self._lock
+        is the thread finished
         """
-        deltaMinutes: number of minutes before alarm time
-        generate r,g,b values 
+        with self._lock:
+            return self._is_finished
+
+    @is_finished.setter
+    def is_finished(self, is_finished):
+        with self._lock:
+            self._is_finished = is_finished
+
+    @property
+    def times_of_week(self):
+        """guarded by self._lock
+        return: self._times_of_week
         """
-        if minutes_per_day - deltaMinutes < self.graceMinutes: return Color(255.0, 255.0, 255.0 , 1.0)
-        if deltaMinutes > self.wakeUpMinutes: return None 
-        level = 1.0 -   deltaMinutes / self.wakeUpMinutes
+        with self._lock:
+            return self.times_of_week
+
+    @times_of_week.setter
+    def times_of_week(self, times_of_week):
+        with self._lock:
+            self._times_of_week = times_of_week
+
+    def get_color(self, delta_minutes):
+        """
+        args:
+            delta_minutes: number of minutes before alarm time
+        return:
+            a Color
+        """
+        if MINUTES_PER_DAY - delta_minutes < self.grace_minutes:
+            return Color(255.0, 255.0, 255.0, 1.0)
+            #return None 
+        if delta_minutes > self.wake_up_minutes: 
+            return None 
+
+        level = 1.0 -   delta_minutes / self.wake_up_minutes
         red, green, blue = 255.0, 0.0, 255.0 * level 
-        print(red,green, blue, self.wakeUpMinutes, deltaMinutes, level)
-        return  Color(red,green,blue, level)
-        
+        print(red,green, blue, self.wake_up_minutes, delta_minutes, level)
+        return Color(red, green, blue, level)
+
     def run(self):
-        while True:
-            time.sleep(self.delay)
-            with self.lock: 
-                if self.__isFinished: break
-            self.tick()
+        while not self.is_finished:
+            try:
+                self.tick()
+            except Exception as e:
+                print(sys.exc_info()[0])
+            finally:
+                time.sleep(self.delay)
 
     def tick(self):
+        """generates a color based on the system time (at method call time) and sets
+        the ledstrip to that color"""
         now = datetime.datetime.now()
-        if not now.weekday() in self.daysOfWeek: return 
-        delta =  self.timeOfDay - now 
-        deltaMinutes = (delta.seconds  % seconds_per_day) / seconds_per_minute
-        light = self.getLight(deltaMinutes) 
-        #print(now, "setting light", str(light))
-        if light is not None: self.setLight(light)
+        if not now.weekday() in self.days_of_week: 
+            return 
+        delta = self.time_of_day - now 
+        delta_minutes = (delta.seconds  % SECONDS_PER_DAY) / SECONDS_PER_MINUTE
+        color = self.get_color(delta_minutes)
+        print(now, "setting color", color)
+        if color:
+            led.fill(color)
+            led.update()
 
-    def setLight(self, color):
-        self.led.fill(color)
-        self.led.update()
 
-    def close(self):
-        with self.lock:
-            self.__isFinished = True
-
-    def dump(self): 
-        d = {
-                "time": self.timeOfDay.isoformat(),
-                "weekdays": self.daysOfWeek,
+    def __repr__(self):
+        return json.dumps({"time": self.time_of_day.isoformat(),
+                "weekdays": self.days_of_week,
                 "delay": self.delay,
-                "grace": self.graceMinutes,
-                "wakeUpMinutes": self.wakeUpMinutes} 
-        return json.dumps(d)
+                "grace": self.grace_minutes,
+                "wake_up_minutes": self.wake_up_minutes})
 
-    def toFile(self, filename):
-        with open(filename, "w") as f:
-            f.write(self.dump())
+    def to_file(self, file_name):
+        """serializes instance state
+        args:
+            file_name: local path where state will be written"""
+        with open(file_name, "w") as f:
+            f.write(repr(self))
 
     @staticmethod 
-    def loads(s): 
-        d = json.loads(s)
-        return Alarm(parser.parse(d["time"]),
-                d["weekdays"],
-                d["wakeUpMinutes"],
-                d["grace"],
-                d["delay"])
+    def load(state_dict): 
+        """de-serializes instance from dict
+        args:
+            state_dict: a dictionary with object state
+        return:
+            an Alarm object
+        """
+        times_of_week = TimesOfWeek(
+            parser.parse(state_dict["time"]),
+            state_dict["weekdays"])
+
+        return Alarm(times_of_week,
+            state_dict["wake_up_minutes"],
+            state_dict["grace"],
+            state_dict["delay"])
 
     @staticmethod
-    def fromFile(filename):
-        with open(filename, "r") as f:
-            return Alarm.loads(
-                    reduce(lambda a,b: a+b, f.readlines()))
+    def from_file(file_path):
+        """args:
+            file_path: a local path where a serialized Alarm object is stored
+            return: a deserialized Alarm object
+        """
+        with open(file_path, "r") as f:
+            state_dict = json.load(f)
+            return Alarm.load(state_dict)
 
 if __name__ == "__main__":
-    state = Alarm(datetime.datetime.now(), [0,1,2,3])
-    filename = "alarm.state.json"
-    state.toFile(filename)
-    state2 = Alarm.fromFile(filename)
-    print("state2", state2.dump())
+    alarm = Alarm(TimesOfWeek(datetime.datetime.now(), [0, 1, 2, 3]))
+    state_path = "alarm.state.json"
+    alarm.to_file(state_path)
+    state2 = Alarm.from_file(state_path)
+    print("state2", state2)
