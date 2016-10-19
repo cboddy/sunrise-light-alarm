@@ -58,7 +58,7 @@ class Alarm(threading.Thread):
         return: self._times_of_week
         """
         with self._lock:
-            return self.times_of_week
+            return self._times_of_week
 
     @times_of_week.setter
     def times_of_week(self, times_of_week):
@@ -82,6 +82,8 @@ class Alarm(threading.Thread):
         red, green, blue = 255.0, 0.0, 255.0 * level 
         print(red,green, blue, self.wake_up_minutes, delta_minutes, level)
         return Color(red, green, blue, level)
+        #return None
+    
 
     def run(self):
         while not self.is_finished:
@@ -149,8 +151,13 @@ class Alarm(threading.Thread):
             return Alarm.load(state_dict)
 
 if __name__ == "__main__":
+    import pdb; pdb.set_trace() 
     alarm = Alarm(TimesOfWeek(datetime.datetime.now(), [0, 1, 2, 3]))
     state_path = "alarm.state.json"
     alarm.to_file(state_path)
     state2 = Alarm.from_file(state_path)
     print("state2", state2)
+    #alarm.start()
+    print("alarm started")
+    #time.sleep(100)
+    alarm.is_finished = True
